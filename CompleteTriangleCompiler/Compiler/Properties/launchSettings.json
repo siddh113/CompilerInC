@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Compiler": {
+      "commandName": "Project",
+      "commandLineArgs": "example_chars.tri example_chars.tam example_chars.txt",
+      "workingDirectory": "../"
+    }
+  }
+}
