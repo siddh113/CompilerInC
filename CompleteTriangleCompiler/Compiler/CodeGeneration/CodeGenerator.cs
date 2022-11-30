@@ -134,6 +134,9 @@ namespace Compiler.CodeGeneration
             GenerateCodeFor(quickIfCommand.EqualCommand);
             Address EqualCommandJumpAddress = code.NextAddress;
             code.AddInstruction(OpCode.JUMP, Register.CB, 0, 0);
+
+            code.PatchInstructionToJumpHere(ExpressionJumpAddress);
+            code.PatchInstructionToJumpHere(EqualCommandJumpAddress);
         }
 
         /// <summary>
