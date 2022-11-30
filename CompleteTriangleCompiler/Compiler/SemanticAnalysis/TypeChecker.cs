@@ -186,38 +186,6 @@ namespace Compiler.SemanticAnalysis
             }
         }
 
-         /// <summary>
-        /// Gets the whether an argument to a function is passed by reference
-        /// </summary>
-        /// <param name="node">The function</param>
-        /// <param name="argument">The index of the argument</param>
-        /// <returns>True if and only if the argument is passed by reference</returns>
-        private static bool ArgumentPassedByReference(FunctionTypeDeclarationNode node, int argument)
-        {
-            return node.Parameters[argument].byRef;
-        }
-
-        /// <summary>
-        /// Gets the number of arguments that a function takes
-        /// </summary>
-        /// <param name="node">The function</param>
-        /// <returns>The number of arguments taken by the function</returns>
-        private static int GetNumberOfArguments(FunctionTypeDeclarationNode node)
-        {
-            return node.Parameters.Length;
-        }
-
-        /// <summary>
-        /// Gets the type of a function's argument
-        /// </summary>
-        /// <param name="node">The function</param>
-        /// <param name="argument">The index of the argument</param>
-        /// <returns>The type of the given argument to the function</returns>
-        private static SimpleTypeDeclarationNode GetArgumentType(FunctionTypeDeclarationNode node, int argument)
-        {
-            return node.Parameters[argument].type;
-        }
-
         /// <summary>
         /// Carries out type checking on an if command node
         /// </summary>
@@ -345,16 +313,6 @@ namespace Compiler.SemanticAnalysis
         }
 
         /// <summary>
-        /// Gets the return type of a function
-        /// </summary>
-        /// <param name="node">The function</param>
-        /// <returns>The return type of the function</returns>
-        private static SimpleTypeDeclarationNode GetReturnType(FunctionTypeDeclarationNode node)
-        {
-            return node.ReturnType;
-        }
-
-        /// <summary>
         /// Carries out type checking on a character expression node
         /// </summary>
         /// <param name="characterExpression">The node to perform type checking on</param>
@@ -375,8 +333,9 @@ namespace Compiler.SemanticAnalysis
             {
                 // Error: identifier is not a variable or constant
                 Reporter.AddError("Identifier Declared is not a variable or a constant " + idExpression.Identifier.Position);
+            }
             else
-                    idExpression.Type = declaration.EntityType;
+                idExpression.Type = declaration.EntityType;
             }
 
             /// <summary>
