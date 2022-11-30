@@ -1,6 +1,7 @@
 ﻿using Compiler.IO;
 using Compiler.Nodes;
 using System.Reflection;
+using System;
 using static System.Reflection.BindingFlags;
 
 namespace Compiler.SemanticAnalysis
@@ -78,7 +79,7 @@ namespace Compiler.SemanticAnalysis
             PerformTypeChecking(loopCommand.WhileExpression);
             PerformTypeChecking(loopCommand.WhileCommand);
 
-            if(loopCommand.WhileExpression.Type != StandardEnvironment.BooleanType)
+            if (loopCommand.WhileExpression.Type != StandardEnvironment.BooleanType)
             {
                 Reporter.AddError("While Expression should return a boolean value " + loopCommand.WhileExpression.Position);
             }
@@ -91,11 +92,12 @@ namespace Compiler.SemanticAnalysis
         private void PerformTypeCheckingOnQuickIfCommand(QuickIfCommandNode quickIfCommand)
         {
             PerformTypeChecking(quickIfCommand.Expression);
-            PerformTypeChecking(quickIfCommand.WhileCommand);
+            PerformTypeChecking(quickIfCommand.EqualCommand);
 
-            if(quickIfCommand.WhileExpression.Type != StandardEnvironment.BooleanType)
+
+            if (quickIfCommand.EqualCommand != StandardEnvironment.BooleanType)
             {
-                Reporter.AddError("While Expression should return a boolean value " + quickIfCommand.WhileExpression.Position);
+                Reporter.AddError("While Expression should return a boolean value " + quickIfCommand.EqualCommand.Position);
             }
         }
 
@@ -147,7 +149,7 @@ namespace Compiler.SemanticAnalysis
                 if (!(callCommand.Parameter is BlankParameterNode))
                 {
                     // Error: function takes no arguments but is called with one
-                    Reporter.AddError(GetNumberOfArguments + "Unrecognized amount of parameters in the function." + callCommand.Parameter.Position);
+                    Reporter.AddError("Unrecognized amount of parameters in the function." + callCommand.Parameter.Position);
                 }
             }
             else
@@ -155,7 +157,7 @@ namespace Compiler.SemanticAnalysis
                 if (callCommand.Parameter is BlankParameterNode)
                 {
                     // Error: function takes an argument but is called without one
-                    Reporter.AddError("The function shows " + GetNumberOfArguments + " arguements but is called with none" + callCommand.Parameter.Position);
+                    Reporter.AddError("The function shows arguements but is called with none" + callCommand.Parameter.Position);
                 }
                 else
                 {
@@ -182,6 +184,38 @@ namespace Compiler.SemanticAnalysis
                     }
                 }
             }
+        }
+
+         /// <summary>
+        /// Gets the whether an argument to a function is passed by reference
+        /// </summary>
+        /// <param name="node">The function</param>
+        /// <param name="argument">The index of the argument</param>
+        /// <returns>True if and only if the argument is passed by reference</returns>
+        private static bool ArgumentPassedByReference(FunctionTypeDeclarationNode node, int argument)
+        {
+            return node.Parameters[argument].byRef;
+        }
+
+        /// <summary>
+        /// Gets the number of arguments that a function takes
+        /// </summary>
+        /// <param name="node">The function</param>
+        /// <returns>The number of arguments taken by the function</returns>
+        private static int GetNumberOfArguments(FunctionTypeDeclarationNode node)
+        {
+            return node.Parameters.Length;
+        }
+
+        /// <summary>
+        /// Gets the type of a function's argument
+        /// </summary>
+        /// <param name="node">The function</param>
+        /// <param name="argument">The index of the argument</param>
+        /// <returns>The type of the given argument to the function</returns>
+        private static SimpleTypeDeclarationNode GetArgumentType(FunctionTypeDeclarationNode node, int argument)
+        {
+            return node.Parameters[argument].type;
         }
 
         /// <summary>
@@ -281,7 +315,7 @@ namespace Compiler.SemanticAnalysis
             if (!(binaryExpression.Op.Declaration is BinaryOperationDeclarationNode opDeclaration))
             {
                 // Error: operator is not a binary operator
-                Debugger.Write(binaryExpression.Op.GetType + " is not a " + binaryExpression);
+                Reporter.AddError("Operator is not a binary operator " + binaryExpression.Op.Position);
             }
             else
             {
@@ -311,6 +345,16 @@ namespace Compiler.SemanticAnalysis
         }
 
         /// <summary>
+        /// Gets the return type of a function
+        /// </summary>
+        /// <param name="node">The function</param>
+        /// <returns>The return type of the function</returns>
+        private static SimpleTypeDeclarationNode GetReturnType(FunctionTypeDeclarationNode node)
+        {
+            return node.ReturnType;
+        }
+
+        /// <summary>
         /// Carries out type checking on a character expression node
         /// </summary>
         /// <param name="characterExpression">The node to perform type checking on</param>
@@ -332,183 +376,187 @@ namespace Compiler.SemanticAnalysis
                 // Error: identifier is not a variable or constant
                 Reporter.AddError("Identifier Declared is not a variable or a constant " + idExpression.Identifier.Position);
             else
-                idExpression.Type = declaration.EntityType;
-        }
-
-        /// <summary>
-        /// Carries out type checking on a  node
-        /// </summary>
-        /// <param name="integerExpression">The node to perform type checking on</param>
-        private void PerformTypeCheckingOnIntegerExpression(IntegerExpressionNode integerExpression)
-        {
-            PerformTypeChecking(integerExpression.IntLit);
-            integerExpression.Type = StandardEnvironment.IntegerType;
-        }
-
-        /// <summary>
-        /// Carries out type checking on a unary expression node
-        /// </summary>
-        /// <param name="unaryExpression">The node to perform type checking on</param>
-        private void PerformTypeCheckingOnUnaryExpression(UnaryExpressionNode unaryExpression)
-        {
-            PerformTypeChecking(unaryExpression.Op);
-            PerformTypeChecking(unaryExpression.Expression);
-            if (!(unaryExpression.Op.Declaration is UnaryOperationDeclarationNode opDeclaration))
-            {
-                // Error: operator is not a unary operator
-                Reporter.AddError("Operator used is not an unary operator " + unaryExpression.Op.Position);
+                    idExpression.Type = declaration.EntityType;
             }
-            else
+
+            /// <summary>
+            /// Carries out type checking on a  node
+            /// </summary>
+            /// <param name="integerExpression">The node to perform type checking on</param>
+            private void PerformTypeCheckingOnIntegerExpression(IntegerExpressionNode integerExpression)
             {
-                if (GetArgumentType(opDeclaration.Type, 0) != unaryExpression.Expression.Type)
+                PerformTypeChecking(integerExpression.IntLit);
+                integerExpression.Type = StandardEnvironment.IntegerType;
+            }
+
+            /// <summary>
+            /// Carries out type checking on a unary expression node
+            /// </summary>
+            /// <param name="unaryExpression">The node to perform type checking on</param>
+            private void PerformTypeCheckingOnUnaryExpression(UnaryExpressionNode unaryExpression)
+            {
+                PerformTypeChecking(unaryExpression.Op);
+                PerformTypeChecking(unaryExpression.Expression);
+                if (!(unaryExpression.Op.Declaration is UnaryOperationDeclarationNode opDeclaration))
                 {
-                    // Error: expression is the wrong type
-                    Reporter.AddError("Expression is a wrong type " + unaryExpression.Expression.Position);
+                    // Error: operator is not a unary operator
+                    Reporter.AddError("Operator used is not an unary operator " + unaryExpression.Op.Position);
                 }
-                unaryExpression.Type = GetReturnType(opDeclaration.Type);
+                else
+                {
+                    if (GetArgumentType(opDeclaration.Type, 0) != unaryExpression.Expression.Type)
+                    {
+                        // Error: expression is the wrong type
+                        Reporter.AddError("Expression is a wrong type " + unaryExpression.Expression.Position);
+                    }
+                    unaryExpression.Type = GetReturnType(opDeclaration.Type);
+                }
             }
-        }
 
 
 
-        /// <summary>
-        /// Carries out type checking on a blank parameter
-        /// </summary>
-        /// <param name="blankParameter">The node to perform type checking on</param>
-        private void PerformTypeCheckingOnBlankParameter(BlankParameterNode blankParameter)
-        {
-        }
-
-        /// <summary>
-        /// Carries out type checking on an expression parameter node
-        /// </summary>
-        /// <param name="expressionParameter">The node to perform type checking on</param>
-        private void PerformTypeCheckingOnExpressionParameter(ExpressionParameterNode expressionParameter)
-        {
-            PerformTypeChecking(expressionParameter.Expression);
-            expressionParameter.Type = expressionParameter.Expression.Type;
-        }
-
-        /// <summary>
-        /// Carries out type checking on a var parameter node
-        /// </summary>
-        /// <param name="varParameter">The node to perform type checking on</param>
-        private void PerformTypeCheckingOnVarParameter(VarParameterNode varParameter)
-        {
-            PerformTypeChecking(varParameter.Identifier);
-            if (!(varParameter.Identifier.Declaration is IVariableDeclarationNode varDeclaration))
+            /// <summary>
+            /// Carries out type checking on a blank parameter
+            /// </summary>
+            /// <param name="blankParameter">The node to perform type checking on</param>
+            private void PerformTypeCheckingOnBlankParameter(BlankParameterNode blankParameter)
             {
-                // Error: identifier is not a variable
-                Reporter.AddError("Identifier declared "+varParameter.Identifier.IdentifierToken+"' is not a variable " + varParameter.Identifier.Position);
             }
-            else
-                varParameter.Type = varDeclaration.EntityType;
-        }
 
-
-
-        /// <summary>
-        /// Carries out type checking on a type denoter node
-        /// </summary>
-        /// <param name="typeDenoter">The node to perform type checking on</param>
-        private void PerformTypeCheckingOnTypeDenoter(TypeDenoterNode typeDenoter)
-        {
-            PerformTypeChecking(typeDenoter.Identifier);
-            if (!(typeDenoter.Identifier.Declaration is SimpleTypeDeclarationNode declaration))
+            /// <summary>
+            /// Carries out type checking on an expression parameter node
+            /// </summary>
+            /// <param name="expressionParameter">The node to perform type checking on</param>
+            private void PerformTypeCheckingOnExpressionParameter(ExpressionParameterNode expressionParameter)
             {
-                // Error: identifier is not a type
-                Reporter.AddError("Identifier declared "+typeDenoter.Identifier.Position+"' is not a type " + typeDenoter.Identifier.Position);
+                PerformTypeChecking(expressionParameter.Expression);
+                expressionParameter.Type = expressionParameter.Expression.Type;
             }
-            else
-                typeDenoter.Type = declaration;
-        }
 
-
-
-        /// <summary>
-        /// Carries out type checking on a character literal node
-        /// </summary>
-        /// <param name="characterLiteral">The node to perform type checking on</param>
-        private void PerformTypeCheckingOnCharacterLiteral(CharacterLiteralNode characterLiteral)
-        {
-            if (characterLiteral.Value < short.MinValue || characterLiteral.Value > short.MaxValue)
+            /// <summary>
+            /// Carries out type checking on a var parameter node
+            /// </summary>
+            /// <param name="varParameter">The node to perform type checking on</param>
+            private void PerformTypeCheckingOnVarParameter(VarParameterNode varParameter)
             {
-                // Error - value too big
-                Reporter.AddError("Character Literal has a value of " + characterLiteral.Value + " which is too large. Check: " + characterLiteral.Position);
+                PerformTypeChecking(varParameter.Identifier);
+                if (!(varParameter.Identifier.Declaration is IVariableDeclarationNode varDeclaration))
+                {
+                    // Error: identifier is not a variable
+                    Reporter.AddError("Identifier declared " + varParameter.Identifier.IdentifierToken + "' is not a variable " + varParameter.Identifier.Position);
+                }
+                else
+                    varParameter.Type = varDeclaration.EntityType;
             }
-        }
 
-        /// <summary>
-        /// Carries out type checking on an identifier node
-        /// </summary>
-        /// <param name="identifier">The node to perform type checking on</param>
-        private void PerformTypeCheckingOnIdentifier(IdentifierNode identifier)
-        {
-        }
 
-        /// <summary>
-        /// Carries out type checking on an integer literal node
-        /// </summary>
-        /// <param name="integerLiteral">The node to perform type checking on</param>
-        private void PerformTypeCheckingOnIntegerLiteral(IntegerLiteralNode integerLiteral)
-        {
-            if (integerLiteral.Value < short.MinValue || integerLiteral.Value > short.MaxValue)
+
+            /// <summary>
+            /// Carries out type checking on a type denoter node
+            /// </summary>
+            /// <param name="typeDenoter">The node to perform type checking on</param>
+            private void PerformTypeCheckingOnTypeDenoter(TypeDenoterNode typeDenoter)
             {
-                // Error - value too big
-                Reporter.AddError("Integer Literal has a value of " + integerLiteral.Value + " which is too large. Check: " + integerLiteral.Position);
+                PerformTypeChecking(typeDenoter.Identifier);
+                if (!(typeDenoter.Identifier.Declaration is SimpleTypeDeclarationNode declaration))
+                {
+                    // Error: identifier is not a type
+                    Reporter.AddError("Identifier declared " + typeDenoter.Identifier.Position + "' is not a type " + typeDenoter.Identifier.Position);
+                }
+                else
+                    typeDenoter.Type = declaration;
             }
-        }
-
-        /// <summary>
-        /// Carries out type checking on an operation node
-        /// </summary>
-        /// <param name="operation">The node to perform type checking on</param>
-        private void PerformTypeCheckingOnOperator(OperatorNode operation)
-        {
-        }
 
 
 
-        /// <summary>
-        /// Gets the number of arguments that a function takes
-        /// </summary>
-        /// <param name="node">The function</param>
-        /// <returns>The number of arguments taken by the function</returns>
-        private static int GetNumberOfArguments(FunctionTypeDeclarationNode node)
-        {
-            return node.Parameters.Length;
-        }
+            /// <summary>
+            /// Carries out type checking on a character literal node
+            /// </summary>
+            /// <param name="characterLiteral">The node to perform type checking on</param>
+            private void PerformTypeCheckingOnCharacterLiteral(CharacterLiteralNode characterLiteral)
+            {
+                if (characterLiteral.Value < short.MinValue || characterLiteral.Value > short.MaxValue)
+                {
+                    // Error - value too big
+                    Reporter.AddError("Character Literal has a value of " + characterLiteral.Value + " which is too large. Check: " + characterLiteral.Position);
+                }
+            }
 
-        /// <summary>
-        /// Gets the type of a function's argument
-        /// </summary>
-        /// <param name="node">The function</param>
-        /// <param name="argument">The index of the argument</param>
-        /// <returns>The type of the given argument to the function</returns>
-        private static SimpleTypeDeclarationNode GetArgumentType(FunctionTypeDeclarationNode node, int argument)
-        {
-            return node.Parameters[argument].type;
-        }
+            /// <summary>
+            /// Carries out type checking on an identifier node
+            /// </summary>
+            /// <param name="identifier">The node to perform type checking on</param>
+            private void PerformTypeCheckingOnIdentifier(IdentifierNode identifier)
+            {
+            }
 
-        /// <summary>
-        /// Gets the whether an argument to a function is passed by reference
-        /// </summary>
-        /// <param name="node">The function</param>
-        /// <param name="argument">The index of the argument</param>
-        /// <returns>True if and only if the argument is passed by reference</returns>
-        private static bool ArgumentPassedByReference(FunctionTypeDeclarationNode node, int argument)
-        {
-            return node.Parameters[argument].byRef;
-        }
+            /// <summary>
+            /// Carries out type checking on an integer literal node
+            /// </summary>
+            /// <param name="integerLiteral">The node to perform type checking on</param>
+            private void PerformTypeCheckingOnIntegerLiteral(IntegerLiteralNode integerLiteral)
+            {
+                if (integerLiteral.Value < short.MinValue || integerLiteral.Value > short.MaxValue)
+                {
+                    // Error - value too big
+                    Reporter.AddError("Integer Literal has a value of " + integerLiteral.Value + " which is too large. Check: " + integerLiteral.Position);
+                }
+            }
 
-        /// <summary>
-        /// Gets the return type of a function
-        /// </summary>
-        /// <param name="node">The function</param>
-        /// <returns>The return type of the function</returns>
-        private static SimpleTypeDeclarationNode GetReturnType(FunctionTypeDeclarationNode node)
-        {
-            return node.ReturnType;
+            /// <summary>
+            /// Carries out type checking on an operation node
+            /// </summary>
+            /// <param name="operation">The node to perform type checking on</param>
+            private void PerformTypeCheckingOnOperator(OperatorNode operation)
+            {
+            }
+
+
+
+            /// <summary>
+            /// Gets the number of arguments that a function takes
+            /// </summary>
+            /// <param name="node">The function</param>
+            /// <returns>The number of arguments taken by the function</returns>
+            private static int GetNumberOfArguments(FunctionTypeDeclarationNode node)
+            {
+                return node.Parameters.Length;
+            }
+
+            /// <summary>
+            /// Gets the type of a function's argument
+            /// </summary>
+            /// <param name="node">The function</param>
+            /// <param name="argument">The index of the argument</param>
+            /// <returns>The type of the given argument to the function</returns>
+            private static SimpleTypeDeclarationNode GetArgumentType(FunctionTypeDeclarationNode node, int argument)
+            {
+                return node.Parameters[argument].type;
+            }
+
+            /// <summary>
+            /// Gets the whether an argument to a function is passed by reference
+            /// </summary>
+            /// <param name="node">The function</param>
+            /// <param name="argument">The index of the argument</param>
+            /// <returns>True if and only if the argument is passed by reference</returns>
+            private static bool ArgumentPassedByReference(FunctionTypeDeclarationNode node, int argument)
+            {
+                return node.Parameters[argument].byRef;
+            }
+
+            /// <summary>
+            /// Gets the return type of a function
+            /// </summary>
+            /// <param name="node">The function</param>
+            /// <returns>The return type of the function</returns>
+            private static SimpleTypeDeclarationNode GetReturnType(FunctionTypeDeclarationNode node)
+            {
+                return node.ReturnType;
+            }
         }
     }
 }
+        
+    
+
