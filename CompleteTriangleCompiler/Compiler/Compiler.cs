@@ -126,7 +126,7 @@ namespace Compiler
             List<String> errors;
             if (Reporter.HasErrors)
             {
-                errors = Reporter.GetErrorList().Distinct().ToList(); // using Distinct() to delete duplicate errors
+                errors = Reporter.GetErrorList().ToList();
                 WriteLine("Could Not Compile Program because of the errors.\n");
                 WriteLine("Total errors encountered in the program: " + errors.Count+"\n");
                 foreach (var error in errors)
