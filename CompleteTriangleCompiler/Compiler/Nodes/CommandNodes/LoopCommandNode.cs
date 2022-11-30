@@ -2,7 +2,7 @@
 {
     public class LoopCommandNode : ICommandNode
     {
-      
+
         public ICommandNode LoopCommand { get; }
 
         public IExpressionNode WhileExpression { get; }
@@ -20,3 +20,4 @@
         }
 
     }
+}

@@ -4,9 +4,11 @@ using Compiler.Nodes;
 using Compiler.SemanticAnalysis;
 using Compiler.SyntacticAnalysis;
 using Compiler.Tokenization;
-using System.Collections.Generic;
 using System.IO;
+using System.Collections.Generic;
 using static System.Console;
+using System;
+using System.Linq;
 
 namespace Compiler
 {
@@ -124,7 +126,7 @@ namespace Compiler
             List<String> errors;
             if (Reporter.HasErrors)
             {
-                errors = Reporter.GetErrorList().Distinct().ToList(); // using Distinct() as parser stores duplicate entries for the same error
+                errors = Reporter.GetErrorList().Distinct().ToList(); // using Distinct() to delete duplicate errors
                 WriteLine("Could Not Compile Program because of the errors.\n");
                 WriteLine("Total errors encountered in the program: " + errors.Count+"\n");
                 foreach (var error in errors)

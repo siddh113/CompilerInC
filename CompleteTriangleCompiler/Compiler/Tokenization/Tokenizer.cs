@@ -77,8 +77,7 @@ namespace Compiler.Tokenization
             if (tokenType == TokenType.Error)
             {
                 // Report the error here
-                String errorReporting = TokenSpelling.ToString(); + " Found in " + tokenStartPosition + " Is an invalid token";
-                Reporter.AddError(errorReporting);
+                Reporter.AddError("The token is invalid " + tokenStartPosition);
             }
 
             return token;

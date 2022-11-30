@@ -1,4 +1,4 @@
-﻿using MiniTriangleCompiler.Compiler;
+﻿using Compiler;
 using System;
 namespace Compiler.Nodes
 {

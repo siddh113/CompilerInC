@@ -46,7 +46,7 @@ namespace Compiler.Tokenization
             { "var", Var },
             { "while", While },
             {"loop", Loop}, // added to grammer
-            {"repeat", Repeat}// added to grammer
+            {"repeat", Repeat},// added to grammer
             {"?", QuestionMark}, // added to grammer
             {"=>", EqualTo} // added to grammer
         }.ToImmutableDictionary();

@@ -262,7 +262,6 @@ namespace Compiler.SemanticAnalysis
         /// <param name="blankParameter">The node to perform identification on</param>
         private void PerformIdentificationOnBlankParameter(BlankParameterNode blankParameter)
         {
-            PerformIdentification(blankParameter.GetType);
         }
 
         /// <summary>
@@ -302,7 +301,6 @@ namespace Compiler.SemanticAnalysis
         /// <param name="characterLiteral">The node to perform identification on</param>
         private void PerformIdentificationOnCharacterLiteral(CharacterLiteralNode characterLiteral)
         {
-            PerformIdentification(characterLiteral.Value);
         }
 
         /// <summary>
@@ -321,8 +319,6 @@ namespace Compiler.SemanticAnalysis
         /// <param name="integerLiteral">The node to perform identification on</param>
         private void PerformIdentificationOnIntegerLiteral(IntegerLiteralNode integerLiteral)
         {
-            IDeclarationNode declaration = SymbolTable.Retrieve(integerLiteral.IntegerLiteralToken.Spelling);
-            integerLiteral.Declaration = declaration; 
         }
 
         /// <summary>
