@@ -420,7 +420,7 @@ namespace Compiler.SemanticAnalysis
                 if (!(typeDenoter.Identifier.Declaration is SimpleTypeDeclarationNode declaration))
                 {
                     // Error: identifier is not a type
-                    Reporter.AddError("Identifier declared " + typeDenoter.Identifier.Position + "' is not a type " + typeDenoter.Identifier.Position);
+                    Reporter.AddError("Identifier declared is not a type " + typeDenoter.Identifier.Position);
                 }
                 else
                     typeDenoter.Type = declaration;
