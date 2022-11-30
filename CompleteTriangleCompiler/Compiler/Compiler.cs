@@ -136,7 +136,7 @@ namespace Compiler
             }
             else
             {
-                WriteLine("Program compiled successfully");
+                WriteLine("Program build successful");
             }
         }
 

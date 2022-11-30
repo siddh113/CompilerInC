@@ -129,7 +129,7 @@ namespace Compiler.SyntacticAnalysis
                     return ParseIfCommand();
                 case While:
                     return ParseWhileCommand();
-                case Loop:                          // added
+                case Loop:                          
                     return ParseLoopCommand();      //added
                 case QuestionMark:
                     return ParseQuickIfCommand(); //added
